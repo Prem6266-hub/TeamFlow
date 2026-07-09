@@ -19,6 +19,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use("/api/auth", authRoutes)
 
+
 const startServer = async(req,res) => {
     try {
         await connectDB();

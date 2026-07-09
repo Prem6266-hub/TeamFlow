@@ -10,12 +10,19 @@ const {
     registerSchema, loginSchema
 } = require("../validators/auth.validator");
 
-const validate = require("../middlewares/auth.middleware");
+const authMiddleware = require("../middlewares/auth.middleware");
 
 
 
-router.post("/register", validate(registerSchema), register);
+router.post("/register", authMiddleware.validate(registerSchema), register);
 
-router.post("/login", validate(loginSchema), login);
+router.post("/login", authMiddleware.validate(loginSchema), login);
+
+router.get("/me", authMiddleware.protect, (req,res) => {
+    res.status(200).json({
+        message: "User Info",
+        user: req.user,
+    });
+})
 
 module.exports = router;
