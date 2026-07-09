@@ -2,14 +2,23 @@ const express = require("express");
 const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
 const authRoutes = require("./src/routes/auth.route");
+const cors = require("cors");;
+const cookieParser = require("cookie-parser");
+const workRouter = require("./src/routes/workspace.route");
 
-const cors = require("cors");
 const app = express();
+
 
 dotenv.config();
 
-app.use(cors());
+app.use(cookieParser());
 app.use(express.json());
+app.use(express.urlencoded({extended: true}));
+
+app.use(cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+}));
 
 const PORT = process.env.PORT || 3000;
 
@@ -17,7 +26,8 @@ const PORT = process.env.PORT || 3000;
 //     res.send("TeamFlow is running");
 // })
 
-app.use("/api/auth", authRoutes)
+app.use("/api/auth", authRoutes);
+app.use("/api/workspaces", workRouter);
 
 
 const startServer = async(req,res) => {
@@ -28,7 +38,7 @@ const startServer = async(req,res) => {
             console.log(`Server is running on port ${PORT}`);
         });
     } catch (err) {
-        res.status(500).json({message: "Failed to start Server", err: err.message});
+        console.log("Failed to start server: ", err.message);
     }
 }
 startServer();
