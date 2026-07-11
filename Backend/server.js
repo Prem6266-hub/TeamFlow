@@ -7,6 +7,7 @@ const cookieParser = require("cookie-parser");
 const workRouter = require("./src/routes/workspace.route");
 const projectRouter = require("./src/routes/project.routes");
 const taskRouter = require("./src/routes/task.route");
+const dashRouter = require("./src/routes/dashboard.route");
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workRouter);
 app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
+app.use("/api/dashboard", dashRouter);
 
 
 const startServer = async(req,res) => {

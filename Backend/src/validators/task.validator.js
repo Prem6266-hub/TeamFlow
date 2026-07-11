@@ -29,8 +29,13 @@ const updateTaskStatusSchema = Joi.object({
   ).required(),
 });
 
+const addCommentSchema = Joi.object({
+  text: Joi.string().min(1).required(),
+})
+
 module.exports = {
   createTaskSchema,
   updateTaskSchema,
   updateTaskStatusSchema,
+  addCommentSchema
 };
