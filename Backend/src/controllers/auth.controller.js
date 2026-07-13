@@ -33,6 +33,7 @@ const register = async(req,res) => {
 
         res.status(201).json({
             message: "User Registered",
+            token,
             user,
         });
 
@@ -77,6 +78,7 @@ const login = async(req,res) => {
 
     res.status(200).json({
         message: "User logged in",
+        token,
         user,
     });
 
