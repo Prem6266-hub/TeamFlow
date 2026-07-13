@@ -2,6 +2,10 @@ const Task = require("../models/task");
 const workSpace = require("../models/workspace");
 const Project = require("../models/project");
 const User = require("../models/user");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
+const createNotification = require("../utils/createNotification");
+const createActivity = require("../utils/createActivity");
 
 const createTask = async (req, res) => {
   try {
@@ -60,6 +64,33 @@ const createTask = async (req, res) => {
       dueDate,
     });
 
+    const io = req.app.get("io");
+
+    io.to(task.workspace.toString()).emit(
+  "taskCreated",
+  {
+    taskId: task._id,
+    title: task.title,
+    assignedTo: task.assignedTo,
+  }
+);
+
+    await createNotification({
+      recipient: assignedTo,
+      sender: req.user._id,
+      message: `You have been assigned task "${task.title}"`,
+      type: "TASK_ASSIGNED",
+      io,
+    });
+
+    await createActivity({
+  workspace: task.workspace,
+  user: req.user._id,
+  action: `created task ${task.title}`,
+  entityType: "TASK",
+  entityId: task._id,
+});
+
     res.status(201).json({
       message: "Task created successfully",
       task,
@@ -100,8 +131,8 @@ const getProjectTasks = async (req, res) => {
     const tasks = await Task.find({
       project: projectId,
     })
-      .populate("assignedTo", "name, email")
-      .populate("createdBy", "name, email")
+      .populate("assignedTo", "name email")
+      .populate("createdBy", "name email")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -226,6 +257,35 @@ const updateTask = async (req, res) => {
 
     await task.save();
 
+    const io = req.app.get("io");
+
+    io.to(task.workspace.toString()).emit(
+  "taskUpdated",
+  {
+    taskId: task._id,
+    title: task.title,
+    status: task.status,
+  }
+);
+
+    await createNotification({
+  recipient: task.assignedTo,
+  sender: req.user._id,
+  message: `Task "${task.title}" updated`,
+  type: "TASK_UPDATED",
+  io,
+});
+
+
+await createActivity({
+  workspace: task.workspace,
+  user: req.user._id,
+  action: `updated task ${task.title}`,
+  entityType: "TASK",
+  entityId: task._id,
+  io,
+});
+
     res.status(200).json({
       message: "Task updated successfully",
       task,
@@ -274,6 +334,36 @@ const updateTaskStatus = async (req, res) => {
     task.status = status;
 
     await task.save();
+
+    const io = req.app.get("io");
+
+    io.to(task.workspace.toString()).emit(
+  "taskStatusChanged",
+  {
+    taskId: task._id,
+    status: task.status,
+  }
+);
+
+    await createNotification({
+  recipient: task.assignedTo,
+  sender: req.user._id,
+  message: `Task "${task.title}" status changed to ${status}`,
+  type: "TASK_UPDATED",
+  io,
+});
+
+if(task.status === "completed"){
+
+  await createActivity({
+    workspace: task.workspace,
+    user: req.user._id,
+    action: `completed task ${task.title}`,
+    entityType: "TASK",
+    entityId: task._id,
+  });
+
+}
 
     res.status(200).json({
       message: "Task status updated successfully",
@@ -366,6 +456,33 @@ const addComment = async (req,res) => {
 
     await task.save();
 
+    const io = req.app.get("io");
+
+    io.to(task.workspace.toString()).emit(
+  "commentAdded",
+  {
+    taskId: task._id,
+    comment: text,
+    user: req.user.name,
+  }
+);
+
+    await createNotification({
+  recipient: task.assignedTo,
+  sender: req.user._id,
+  message: `${req.user.name} commented on "${task.title}"`,
+  type: "COMMENT_ADDED",
+  io
+});
+
+await createActivity({
+  workspace: task.workspace,
+  user: req.user._id,
+  action: `commented on ${task.title}`,
+  entityType: "COMMENT",
+  entityId: task._id,
+});
+
     res.status(200).json({
       message: "Comment added successfully",
       comments: task.comments,
@@ -403,4 +520,120 @@ const getTasksComment = async (req,res) => {
   }
 }
 
-module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment };
+const uploadAttachment = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "File is required",
+      });
+    }
+
+    const uploadResult = await new Promise(
+      (resolve, reject) => {
+
+        const stream =
+          cloudinary.uploader.upload_stream(
+            {
+              folder: "teamflow",
+              resource_type: "auto",
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+
+        streamifier
+          .createReadStream(req.file.buffer)
+          .pipe(stream);
+      }
+    );
+
+    task.attachments.push({
+      fileName: req.file.originalname,
+      fileUrl: uploadResult.secure_url,
+      uploadedBy: req.user._id,
+    });
+
+    await task.save();
+
+    const io = req.app.get("io");
+
+io.to(task.workspace.toString()).emit(
+  "attachmentUploaded",
+  {
+    taskId: task._id,
+    taskTitle: task.title,
+    fileName: req.file.originalname,
+    uploadedBy: req.user.name,
+    fileUrl: uploadResult.secure_url,
+  }
+);
+
+    await createNotification({
+  recipient: task.assignedTo,
+  sender: req.user._id,
+  message: `${req.user.name} uploaded a file in "${task.title}"`,
+  type: "FILE_UPLOADED",
+  io
+});
+
+await createActivity({
+  workspace: task.workspace,
+  user: req.user._id,
+  action: `uploaded ${req.file.originalname}`,
+  entityType: "FILE",
+  entityId: task._id,
+});
+
+    res.status(201).json({
+      message: "File uploaded successfully",
+      attachment:
+        task.attachments[
+          task.attachments.length - 1
+        ],
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to upload attachment",
+    });
+  }
+};
+
+
+const getAttachments = async (req,res) => {
+  try {
+    const {taskId} = req.params;
+
+    const task = await Task.findById(taskId)
+    .populate("attachments.uploadedBy", "name email");
+
+    if(!task){
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    res.status(200).json({
+      attachments: task.attachments,
+    })
+  } catch (err) {
+     res.status(500).json({
+      message:
+        "Failed to get attachments",
+    });
+  }
+}
+
+module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment, uploadAttachment, getAttachments };

@@ -3,8 +3,9 @@ const express = require("express");
 const taskRouter = express.Router();
 
 const{protect, validate} = require("../middlewares/auth.middleware");
-const {createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment} = require("../controllers/task.controller");
-const {createTaskSchema,updateTaskSchema, updateTaskStatusSchema, addCommentSchema} = require("../validators/task.validator")
+const {createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment, uploadAttachment, getAttachments} = require("../controllers/task.controller");
+const {createTaskSchema,updateTaskSchema, updateTaskStatusSchema, addCommentSchema} = require("../validators/task.validator");
+const upload = require("../middlewares/upload.middleware");
 
 taskRouter.post("/create", protect, validate(createTaskSchema), createTask);
 taskRouter.get("/project/:projectId", protect, getProjectTasks);
@@ -14,6 +15,8 @@ taskRouter.patch("/:taskId/status", protect, validate(updateTaskStatusSchema), u
 taskRouter.delete("/:taskId", protect, deleteTask);
 taskRouter.post("/:taskId/comment", protect, validate(addCommentSchema), addComment);
 taskRouter.get("/:taskId/comments", protect, getTasksComment);
+taskRouter.post("/:taskId/attachment", protect, upload.single("file"), uploadAttachment);
+taskRouter.get("/:taskId/attachments", protect, getAttachments);
 
 
 module.exports = taskRouter;

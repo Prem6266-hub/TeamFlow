@@ -60,9 +60,20 @@ createdBy: {
         },
       },
     ],
-    attachments: {
-      type: [String],
+    attachments: [
+  {
+    fileName: String,
+    fileUrl: String,
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+],
   },
   {
     timestamps: true,

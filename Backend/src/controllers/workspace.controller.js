@@ -1,5 +1,9 @@
 const workSpace = require("../models/workspace");
 const User = require("../models/user");
+const Activity = require('../models/activity');
+
+const createNotification = require("../utils/createNotification");
+const {onlineUsers} = require("../socket/socket");
 
 const createWorkspace = async (req, res) => {
   try {
@@ -78,6 +82,16 @@ const inviteUsertoWorkspace = async (req, res) => {
     workspace.members.push(user._id);
 
     await workspace.save();
+
+    const io = req.app.get("io");
+
+    await createNotification({
+  recipient: user._id,
+  sender: req.user._id,
+  message: `You have been added to workspace "${workspace.name}"`,
+  type: "MEMBER_INVITED",
+  io
+});
 
     res.status(200).json({
         message: "Member invited successfully",
@@ -238,4 +252,77 @@ const deleteWorkspace = async(req,res) => {
     }
 }
 
-module.exports = { createWorkspace, getUserWorkspaces, inviteUsertoWorkspace, getSingleWorkspace, removeWorkspaceMember, updateWorkspace, deleteWorkspace };
+const getWorkspaceMembers = async (req,res) => {
+
+    try {
+    const workspace =
+      await workSpace.findById(
+        req.params.workSpaceId
+      )
+      .populate(
+        "owner members",
+        "name email"
+      );
+
+    const users = [
+      workspace.owner,
+      ...workspace.members,
+    ];
+
+    const members = users.map(
+      user => ({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        online: onlineUsers.has(
+          user._id.toString()
+        ),
+      })
+    );
+
+    res.status(200).json(
+      members
+    );
+
+    } catch (err) {
+      res.status(500).json({
+        message: "Failed to get members",
+      })
+    }
+};
+
+const getWorkspaceActivities = async (req,res) => {
+
+    try {
+
+      const { workSpaceId } =
+        req.params;
+
+      const activities =
+        await Activity.find({
+          workspace: workSpaceId,
+        })
+        .populate(
+          "user",
+          "name"
+        )
+        .sort({
+          createdAt: -1,
+        })
+        .limit(50);
+
+      res.status(200).json(
+        activities
+      );
+
+    } catch (err) {
+
+      res.status(500).json({
+        message:
+          "Failed to get activities",
+      });
+
+    }
+};
+
+module.exports = { createWorkspace, getUserWorkspaces, inviteUsertoWorkspace, getSingleWorkspace, removeWorkspaceMember, updateWorkspace, deleteWorkspace, getWorkspaceMembers, getWorkspaceActivities };
