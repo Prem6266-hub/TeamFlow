@@ -1,54 +1,64 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-
-import {login} from "../features/auth/authSlice";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../features/auth/authSlice';
+import { Link, useNavigate } from 'react-router-dom';
 
 function Login() {
-    const dispatch = useDispatch();
+  const { user, loading, error } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-    const [formData, setFormData] = useState({
-        email: "",
-        password: "",
-    })
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
 
-    const {user} = useSelector((state) => state.auth);
+  useEffect(() => {
+    if (user) navigate('/dashboard');
+  }, [user, navigate]);
 
-    const navigate = useNavigate();
-    useEffect(() => {
-        if(user){
-            navigate("/dashboard");
-        }
-    },[user]);
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
-    const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value,
-        })
-    }
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    dispatch(login(formData));
+  };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  return (
+    <div className="auth-shell">
+      <div className="auth-card page-card">
+        <div className="auth-card__content">
+          <span className="workspace-eyebrow">Welcome back</span>
+          <h1 className="workspace-title">Login to TeamFlow</h1>
+          <p className="workspace-description">Plan projects, track deliverables, and collaborate effortlessly.</p>
+        </div>
 
-        dispatch(login(formData));
-    }
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="input-group">
+            <label htmlFor="email">Email</label>
+            <input id="email" className="input" type="email" name="email" placeholder="name@example.com" value={formData.email} onChange={handleChange} />
+          </div>
 
-    
-    return (
-        <>
-          <h1>Login</h1>
+          <div className="input-group">
+            <label htmlFor="password">Password</label>
+            <input id="password" className="input" type="password" name="password" placeholder="Enter password" value={formData.password} onChange={handleChange} />
+          </div>
 
-          <form onSubmit={handleSubmit}>
-            <input type="email" name="email" placeholder="Email" onChange={handleChange} />
-            <input type="password" name="password" placeholder="Password" onChange={handleChange} />
+          {error && <div className="form-error">{error}</div>}
 
-            <button type="submit">Login</button>
-          </form>
-        </>
-    )
+          <button className="btn btn-primary" type="submit" disabled={loading}>
+            {loading ? 'Signing in...' : 'Login'}
+          </button>
 
-
+          <p className="auth-link">
+            New here? <Link to="/register">Create an account</Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default Login;

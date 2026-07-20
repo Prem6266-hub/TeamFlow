@@ -34,4 +34,34 @@ const markAsRead = async(req,res) => {
     }
 }
 
-module.exports = {getNotification, markAsRead}
+const deleteNotification = async (req, res) => {
+    try {
+        const { notificationId } = req.params;
+
+        await Notification.findByIdAndDelete(notificationId);
+
+        res.status(200).json({
+            message: "Notification removed",
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to remove notification",
+        });
+    }
+};
+
+const clearNotifications = async (req, res) => {
+    try {
+        await Notification.deleteMany({ recipient: req.user._id });
+
+        res.status(200).json({
+            message: "Notifications cleared",
+        });
+    } catch (err) {
+        res.status(500).json({
+            message: "Failed to clear notifications",
+        });
+    }
+};
+
+module.exports = {getNotification, markAsRead, deleteNotification, clearNotifications}

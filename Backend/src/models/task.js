@@ -1,5 +1,21 @@
 const mongoose = require("mongoose");
 
+const attachmentSchema = mongoose.Schema(
+  {
+    fileName: String,
+    fileUrl: String,
+    uploadedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const taskSchema = mongoose.Schema(
   {
     title: {
@@ -60,20 +76,7 @@ createdBy: {
         },
       },
     ],
-    attachments: [
-  {
-    fileName: String,
-    fileUrl: String,
-    uploadedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
-    uploadedAt: {
-      type: Date,
-      default: Date.now,
-    },
-  },
-],
+    attachments: [attachmentSchema],
   },
   {
     timestamps: true,

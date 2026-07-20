@@ -75,13 +75,25 @@ const createTask = async (req, res) => {
   }
 );
 
-    await createNotification({
-      recipient: assignedTo,
-      sender: req.user._id,
-      message: `You have been assigned task "${task.title}"`,
-      type: "TASK_ASSIGNED",
-      io,
-    });
+    const notificationRecipients = [...new Set(
+      [workspace.owner, ...workspace.members, assignedTo]
+        .filter(Boolean)
+        .map((member) => member.toString()),
+    )];
+
+    for (const recipientId of notificationRecipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user._id,
+        message: recipientId.toString() === assignedTo.toString()
+          ? `You have been assigned task "${task.title}"`
+          : `Task "${task.title}" was created in the workspace`,
+        type: "TASK_ASSIGNED",
+        io,
+        relatedWorkspace: workspace._id,
+        relatedTask: task._id,
+      });
+    }
 
     await createActivity({
   workspace: task.workspace,
@@ -154,7 +166,7 @@ const getSingleTask = async (req, res) => {
       .populate("assignedTo", "name email")
       .populate("createdBy", "name email")
       .populate("project", "name")
-      .populate("workspace", "name");
+      .populate("workspace", "name owner");
 
     if (!task) {
       return res.status(404).json({
@@ -201,17 +213,17 @@ const updateTask = async (req, res) => {
 
     const workspace = await workSpace.findById(task.workspace);
     if (!workspace) {
-  return res.status(404).json({
-    message: "Workspace not found",
-  });
-}
+      return res.status(404).json({
+        message: "Workspace not found",
+      });
+    }
 
-    const isOwner = workspace.owner.toString() === req.user._id.toString();
-    const isCreator = task.createdBy.toString() === req.user._id.toString();
+    const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
+    const isWorkspaceOwner = workspace.owner.toString() === req.user._id.toString();
 
-    if (!isOwner && !isCreator) {
+    if (!isAssigned && !isWorkspaceOwner) {
       return res.status(403).json({
-        message: "You are not authorized to update this task",
+        message: "Only the assigned user or workspace owner can edit this task",
       });
     }
 
@@ -268,13 +280,23 @@ const updateTask = async (req, res) => {
   }
 );
 
-    await createNotification({
-  recipient: task.assignedTo,
-  sender: req.user._id,
-  message: `Task "${task.title}" updated`,
-  type: "TASK_UPDATED",
-  io,
-});
+    const notificationRecipients = [...new Set(
+      [workspace.owner, ...workspace.members, task.assignedTo]
+        .filter(Boolean)
+        .map((member) => member.toString()),
+    )];
+
+    for (const recipientId of notificationRecipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user._id,
+        message: `Task "${task.title}" updated`,
+        type: "TASK_UPDATED",
+        io,
+        relatedWorkspace: workspace._id,
+        relatedTask: task._id,
+      });
+    }
 
 
 await createActivity({
@@ -316,18 +338,12 @@ const updateTaskStatus = async (req, res) => {
       task.workspace
     );
 
-    const isOwner =
-      workspace.owner.toString() === req.user._id.toString();
+    const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
+    const isWorkspaceOwner = workspace.owner.toString() === req.user._id.toString();
 
-    const isCreator =
-      task.createdBy.toString() === req.user._id.toString();
-
-    const isAssignee =
-      task.assignedTo.toString() === req.user._id.toString();
-
-    if (!isOwner && !isCreator && !isAssignee) {
+    if (!isAssigned && !isWorkspaceOwner) {
       return res.status(403).json({
-        message: "You are not authorized to update task status",
+        message: "Only the assigned user or workspace owner can update task status",
       });
     }
 
@@ -345,13 +361,23 @@ const updateTaskStatus = async (req, res) => {
   }
 );
 
-    await createNotification({
-  recipient: task.assignedTo,
-  sender: req.user._id,
-  message: `Task "${task.title}" status changed to ${status}`,
-  type: "TASK_UPDATED",
-  io,
-});
+    const notificationRecipients = [...new Set(
+      [workspace.owner, ...workspace.members, task.assignedTo]
+        .filter(Boolean)
+        .map((member) => member.toString()),
+    )];
+
+    for (const recipientId of notificationRecipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user._id,
+        message: `Task "${task.title}" status changed to ${status}`,
+        type: "TASK_UPDATED",
+        io,
+        relatedWorkspace: workspace._id,
+        relatedTask: task._id,
+      });
+    }
 
 if(task.status === "completed"){
 
@@ -393,15 +419,12 @@ const deleteTask = async (req, res) => {
       task.workspace
     );
 
-    const isOwner =
-      workspace.owner.toString() === req.user._id.toString();
+    const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user._id.toString();
+    const isWorkspaceOwner = workspace.owner.toString() === req.user._id.toString();
 
-    const isCreator =
-      task.createdBy.toString() === req.user._id.toString();
-
-    if (!isOwner && !isCreator) {
+    if (!isAssigned && !isWorkspaceOwner) {
       return res.status(403).json({
-        message: "You are not authorized to delete this task",
+        message: "Only the assigned user or workspace owner can delete this task",
       });
     }
 
@@ -455,25 +478,34 @@ const addComment = async (req,res) => {
     });
 
     await task.save();
+    await task.populate("comments.user", "name email");
 
     const io = req.app.get("io");
+    const newComment = task.comments[task.comments.length - 1];
+    const commentPayload = {
+      taskId: task._id,
+      comment: newComment.toObject ? newComment.toObject() : newComment,
+    };
 
-    io.to(task.workspace.toString()).emit(
-  "commentAdded",
-  {
-    taskId: task._id,
-    comment: text,
-    user: req.user.name,
-  }
-);
+    io.to(task.workspace.toString()).emit("commentAdded", commentPayload);
 
-    await createNotification({
-  recipient: task.assignedTo,
-  sender: req.user._id,
-  message: `${req.user.name} commented on "${task.title}"`,
-  type: "COMMENT_ADDED",
-  io
-});
+    const notificationRecipients = [...new Set(
+      [workspace.owner, ...workspace.members, task.assignedTo]
+        .filter(Boolean)
+        .map((member) => member.toString()),
+    )];
+
+    for (const recipientId of notificationRecipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user._id,
+        message: `${req.user.name} commented on "${task.title}"`,
+        type: "COMMENT_ADDED",
+        io,
+        relatedWorkspace: workspace._id,
+        relatedTask: task._id,
+      });
+    }
 
 await createActivity({
   workspace: task.workspace,
@@ -520,6 +552,47 @@ const getTasksComment = async (req,res) => {
   }
 }
 
+  const deleteComment = async (req, res) => {
+    try {
+      const { taskId, commentId } = req.params;
+
+      const task = await Task.findById(taskId);
+      if (!task) {
+        return res.status(404).json({ message: 'Task not found' });
+      }
+
+      const workspace = await workSpace.findById(task.workspace);
+      if (!workspace) {
+        return res.status(404).json({ message: 'Workspace not found' });
+      }
+
+      const comment = task.comments.id(commentId);
+      if (!comment) {
+        return res.status(404).json({ message: 'Comment not found' });
+      }
+
+      const isWorkspaceOwner = workspace.owner.toString() === req.user._id.toString();
+      const isCommentAuthor = comment.user && comment.user.toString() === req.user._id.toString();
+
+      if (!isWorkspaceOwner && !isCommentAuthor) {
+        return res.status(403).json({ message: 'Only the workspace owner or comment author can delete this comment' });
+      }
+
+      comment.remove();
+      await task.save();
+
+      const io = req.app.get('io');
+      if (io) {
+        io.to(task.workspace.toString()).emit('commentDeleted', { taskId: task._id, commentId });
+      }
+
+      res.status(200).json({ message: 'Comment deleted', commentId, comments: task.comments });
+    } catch (err) {
+      console.error('Delete comment error:', err);
+      res.status(500).json({ message: 'Failed to delete comment' });
+    }
+  }
+
 const uploadAttachment = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -535,6 +608,15 @@ const uploadAttachment = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         message: "File is required",
+      });
+    }
+
+    const workspace = await workSpace.findById(task.workspace);
+    const isWorkspaceOwner = workspace?.owner?.toString() === req.user._id.toString();
+
+    if (!isWorkspaceOwner) {
+      return res.status(403).json({
+        message: "Only the workspace owner can upload attachments",
       });
     }
 
@@ -567,46 +649,67 @@ const uploadAttachment = async (req, res) => {
 
     await task.save();
 
+    const attachment =
+      task.attachments[task.attachments.length - 1];
+
     const io = req.app.get("io");
 
-io.to(task.workspace.toString()).emit(
-  "attachmentUploaded",
-  {
-    taskId: task._id,
-    taskTitle: task.title,
-    fileName: req.file.originalname,
-    uploadedBy: req.user.name,
-    fileUrl: uploadResult.secure_url,
-  }
-);
+    io.to(task.workspace.toString()).emit(
+      "attachmentUploaded",
+      {
+        taskId: task._id,
+        taskTitle: task.title,
+        fileName: req.file.originalname,
+        uploadedBy: req.user.name,
+        fileUrl: uploadResult.secure_url,
+      }
+    );
 
-    await createNotification({
-  recipient: task.assignedTo,
-  sender: req.user._id,
-  message: `${req.user.name} uploaded a file in "${task.title}"`,
-  type: "FILE_UPLOADED",
-  io
-});
+    try {
+      const notificationRecipients = [...new Set(
+        [workspace.owner, ...workspace.members, task.assignedTo]
+          .filter(Boolean)
+          .map((member) => member.toString()),
+      )];
 
-await createActivity({
-  workspace: task.workspace,
-  user: req.user._id,
-  action: `uploaded ${req.file.originalname}`,
-  entityType: "FILE",
-  entityId: task._id,
-});
+      for (const recipientId of notificationRecipients) {
+        await createNotification({
+          recipient: recipientId,
+          sender: req.user._id,
+          message: `${req.user.name} uploaded a file in "${task.title}"`,
+          type: "FILE_UPLOADED",
+          io,
+          relatedWorkspace: workspace._id,
+          relatedTask: task._id,
+        });
+      }
+    } catch (notificationError) {
+      console.error("Attachment uploaded but notification failed:", notificationError);
+    }
+
+    try {
+      await createActivity({
+        workspace: task.workspace,
+        user: req.user._id,
+        action: `uploaded ${req.file.originalname}`,
+        entityType: "FILE",
+        entityId: task._id,
+      });
+    } catch (activityError) {
+      console.error("Attachment uploaded but activity logging failed:", activityError);
+    }
 
     res.status(201).json({
       message: "File uploaded successfully",
-      attachment:
-        task.attachments[
-          task.attachments.length - 1
-        ],
+      attachment,
     });
 
   } catch (err) {
+    console.error("Upload attachment error:", err);
     res.status(500).json({
-      message: "Failed to upload attachment",
+      message:
+        err?.message ||
+        "Failed to upload attachment",
     });
   }
 };
@@ -627,13 +730,66 @@ const getAttachments = async (req,res) => {
 
     res.status(200).json({
       attachments: task.attachments,
-    })
+    });
   } catch (err) {
      res.status(500).json({
       message:
         "Failed to get attachments",
     });
   }
-}
+};
 
-module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment, uploadAttachment, getAttachments };
+const deleteAttachment = async (req, res) => {
+  try {
+    const { taskId, attachmentId } = req.params;
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({
+        message: "Task not found",
+      });
+    }
+
+    const isCreator = task.createdBy.toString() === req.user._id.toString();
+
+    if (!isCreator) {
+      return res.status(403).json({
+        message: "Only the task creator can remove attachments",
+      });
+    }
+
+    const attachment = task.attachments.id(attachmentId);
+
+    if (!attachment) {
+      return res.status(404).json({
+        message: "Attachment not found",
+      });
+    }
+
+    task.attachments.pull(attachment);
+    await task.save();
+
+    const io = req.app.get("io");
+    if (io) {
+      io.to(task.workspace.toString()).emit("attachmentDeleted", {
+        taskId: task._id,
+        attachmentId,
+      });
+    }
+
+    res.status(200).json({
+      message: "Attachment removed successfully",
+      attachmentId,
+    });
+  } catch (err) {
+    console.error("Delete attachment error:", err);
+    res.status(500).json({
+      message:
+        err?.message ||
+        "Failed to delete attachment",
+    });
+  }
+};
+
+module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment, deleteComment, uploadAttachment, getAttachments, deleteAttachment };

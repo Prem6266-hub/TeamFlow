@@ -102,6 +102,42 @@ const getMe = async(req,res) => {
     }
 }
 
+const updateProfile = async (req, res) => {
+    try {
+        const { name, email } = req.body || {};
+        const user = await User.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (typeof name === "string" && name.trim()) {
+            user.name = name.trim();
+        }
+
+        if (typeof email === "string" && email.trim()) {
+            const normalizedEmail = email.trim().toLowerCase();
+            const existingUser = await User.findOne({ email: normalizedEmail });
+            if (existingUser && existingUser._id.toString() !== user._id.toString()) {
+                return res.status(400).json({ message: "Email already in use" });
+            }
+            user.email = normalizedEmail;
+        }
+
+        await user.save();
+
+        const updatedUser = await User.findById(user._id).select("-password");
+
+        res.status(200).json({
+            message: "Profile updated successfully",
+            user: updatedUser,
+        });
+    } catch (err) {
+        console.error("Profile update failed", err);
+        res.status(500).json({ message: "Failed to update profile" });
+    }
+};
+
 const logout = async(req,res) => {
     try {
         res.clearCookie("token", {
@@ -121,4 +157,4 @@ const logout = async(req,res) => {
 }
 
 
-module.exports = {register, login, getMe, logout};
+module.exports = {register, login, getMe, updateProfile, logout};

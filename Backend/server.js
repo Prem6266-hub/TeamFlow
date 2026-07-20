@@ -1,5 +1,7 @@
-const express = require("express");
 const dotenv = require("dotenv");
+dotenv.config();
+
+const express = require("express");
 const connectDB = require("./src/config/db");
 const authRoutes = require("./src/routes/auth.route");
 const cors = require("cors");;
@@ -32,7 +34,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 
 app.use(cors({
-    origin: " http://localhost:5173",
+    origin: ["http://localhost:5175","http://localhost:5173"],
     credentials: true,
 }));
 

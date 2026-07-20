@@ -1,0 +1,63 @@
+import React from 'react';
+import { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchSingleProject } from '../features/project/projectSlice';
+import TaskBoard from '../components/TaskBoard';
+import CreateTask from '../components/createTask';
+import { fetchTasks } from '../features/task/taskSlice';
+import '../styles/Workspace.css';
+
+function Project() {
+  const { projectId } = useParams();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { currentProject } = useSelector((state) => state.project);
+  const { tasks } = useSelector((state) => state.task);
+
+  const project = currentProject?.project;
+
+  useEffect(() => {
+    dispatch(fetchSingleProject(projectId));
+  }, [dispatch, projectId]);
+
+  useEffect(() => {
+    if (projectId) {
+      dispatch(fetchTasks(projectId));
+    }
+  }, [dispatch, projectId]);
+
+  return (
+    <div className="workspace-page">
+      <section className="workspace-hero">
+        <div className="workspace-hero__content">
+          <span className="workspace-eyebrow">Project workspace</span>
+          <h1 className="workspace-title">{project?.name || 'Project'}</h1>
+          <p className="workspace-description">{project?.description || 'A focused space for planning and delivery.'}</p>
+        </div>
+
+        <div className="workspace-actions">
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>Back</button>
+        </div>
+      </section>
+
+      <div className="workspace-grid">
+        <section className="workspace-card">
+          <div className="workspace-card__header">
+            <h2>Create task</h2>
+          </div>
+          <CreateTask projectId={projectId} />
+        </section>
+
+        <section className="workspace-card">
+          <div className="workspace-card__header">
+            <h2>Task board</h2>
+          </div>
+          <TaskBoard tasks={tasks} />
+        </section>
+      </div>
+    </div>
+  );
+}
+
+export default Project;

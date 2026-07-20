@@ -1,6 +1,7 @@
 const Project = require("../models/project");
 const workSpace = require("../models/workspace");
 const createActivity = require("../utils/createActivity");
+const createNotification = require("../utils/createNotification");
 
 const createProjectController = async (req, res) => {
   try {
@@ -32,10 +33,24 @@ const createProjectController = async (req, res) => {
 
     const io = req.app.get("io");
 
-    io.to(workspaceId).emit("projectCreated", {
+    io.to(workSpaceId).emit("projectCreated", {
       projectId: project._id,
       name: project.name,
     });
+
+    const recipients = [...new Set([workspace.owner, ...workspace.members, req.user._id].map((member) => member.toString()))];
+
+    for (const recipientId of recipients) {
+      await createNotification({
+        recipient: recipientId,
+        sender: req.user._id,
+        message: `${req.user.name || "A user"} created project "${project.name}"`,
+        type: "PROJECT_CREATED",
+        io,
+        relatedWorkspace: workSpaceId,
+        relatedProject: project._id,
+      });
+    }
 
     await createActivity({
   workspace: workSpaceId,

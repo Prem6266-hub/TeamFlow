@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 
 const {
-    register, login, getMe, logout
+    register, login, getMe, updateProfile, logout
 } = require("../controllers/auth.controller");
 
 const {
@@ -19,7 +19,7 @@ router.post("/register", authMiddleware.validate(registerSchema), register);
 router.post("/login", authMiddleware.validate(loginSchema), login);
 
 router.get("/me", authMiddleware.protect,getMe);
-
+router.put("/profile", authMiddleware.protect, updateProfile);
 
 router.post("/logout", logout);
 

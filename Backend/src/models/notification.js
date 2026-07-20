@@ -26,6 +26,7 @@ const notificationSchema = mongoose.Schema(
         "COMMENT_ADDED",
         "MEMBER_INVITED",
         "FILE_UPLOADED",
+        "PROJECT_CREATED",
       ],
     },
 

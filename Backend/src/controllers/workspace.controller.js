@@ -86,15 +86,21 @@ const inviteUsertoWorkspace = async (req, res) => {
     const io = req.app.get("io");
 
     await createNotification({
-  recipient: user._id,
-  sender: req.user._id,
-  message: `You have been added to workspace "${workspace.name}"`,
-  type: "MEMBER_INVITED",
-  io
-});
+      recipient: user._id,
+      sender: req.user._id,
+      message: `You have been added to workspace "${workspace.name}"`,
+      type: "MEMBER_INVITED",
+      io
+    });
 
     res.status(200).json({
         message: "Member invited successfully",
+        member: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          online: false,
+        },
     });
 
   } catch (err) {
@@ -211,8 +217,11 @@ const updateWorkspace = async(req,res) => {
 
     await workspace.save();
 
+    const updatedWorkspace = await workSpace.findById(workSpaceId).populate("owner", "name email");
+
     res.status(200).json({
         message: "Info updated successfully",
+        workspace: updatedWorkspace,
     });
     } catch (err) {
         res.status(500).json({
@@ -269,7 +278,16 @@ const getWorkspaceMembers = async (req,res) => {
       ...workspace.members,
     ];
 
-    const members = users.map(
+    const uniqueUsers = [];
+    const seenIds = new Set();
+
+    users.forEach((user) => {
+      if (!user || seenIds.has(user._id.toString())) return;
+      seenIds.add(user._id.toString());
+      uniqueUsers.push(user);
+    });
+
+    const members = uniqueUsers.map(
       user => ({
         _id: user._id,
         name: user.name,
@@ -325,4 +343,34 @@ const getWorkspaceActivities = async (req,res) => {
     }
 };
 
-module.exports = { createWorkspace, getUserWorkspaces, inviteUsertoWorkspace, getSingleWorkspace, removeWorkspaceMember, updateWorkspace, deleteWorkspace, getWorkspaceMembers, getWorkspaceActivities };
+const clearWorkspaceActivities = async (req, res) => {
+  try {
+    const { workSpaceId } = req.params;
+
+    const workspace = await workSpace.findById(workSpaceId);
+
+    if (!workspace) {
+      return res.status(404).json({
+        message: "Workspace not found",
+      });
+    }
+
+    if (workspace.owner.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Only the workspace owner can clear activities",
+      });
+    }
+
+    await Activity.deleteMany({ workspace: workSpaceId });
+
+    res.status(200).json({
+      message: "Activities cleared successfully",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "Failed to clear activities",
+    });
+  }
+};
+
+module.exports = { createWorkspace, getUserWorkspaces, inviteUsertoWorkspace, getSingleWorkspace, removeWorkspaceMember, updateWorkspace, deleteWorkspace, getWorkspaceMembers, getWorkspaceActivities, clearWorkspaceActivities };
