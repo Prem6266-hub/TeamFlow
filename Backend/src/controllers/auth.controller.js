@@ -4,7 +4,7 @@ const generateToken = require("../utils/generateToken");
 
 const register = async(req,res) => {
     try {
-        const {name, email, password} = req.body;
+        const {name, email, password, skill} = req.body;
         
         const existingUser = await User.findOne({
             email,
@@ -19,7 +19,10 @@ const register = async(req,res) => {
         const hashedPass = await bcrypt.hash(password, 10);
 
         const user = await User.create({
-            name, email, password: hashedPass,
+            name,
+            email,
+            password: hashedPass,
+            skill,
         })
 
         const token = generateToken(user._id);
@@ -104,7 +107,7 @@ const getMe = async(req,res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { name, email } = req.body || {};
+        const { name, email, skill } = req.body || {};
         const user = await User.findById(req.user._id);
 
         if (!user) {
@@ -122,6 +125,10 @@ const updateProfile = async (req, res) => {
                 return res.status(400).json({ message: "Email already in use" });
             }
             user.email = normalizedEmail;
+        }
+
+        if (typeof skill === "string" && ["Frontend", "Backend", "Fullstack", "Other"].includes(skill)) {
+            user.skill = skill;
         }
 
         await user.save();

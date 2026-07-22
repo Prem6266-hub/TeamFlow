@@ -5,6 +5,7 @@ import workspaceReducer from "../features/workspace/workspaceSlice";
 import projectReducer from "../features/project/projectSlice";
 import taskReducer from "../features/task/taskSlice";
 import notificationReducer from "../features/notification/notificationSlice";
+import aiReducer from "../features/ai/aiSlice";
 
 export const store = configureStore({
   reducer: {
@@ -13,5 +14,6 @@ export const store = configureStore({
     project: projectReducer,
     task: taskReducer,
     notification: notificationReducer,
+    ai: aiReducer,
   },
 });

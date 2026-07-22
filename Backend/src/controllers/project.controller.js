@@ -38,7 +38,10 @@ const createProjectController = async (req, res) => {
       name: project.name,
     });
 
-    const recipients = [...new Set([workspace.owner, ...workspace.members, req.user._id].map((member) => member.toString()))];
+    const recipients = [...new Set([
+      workspace.owner.toString(),
+      ...workspace.members.map((member) => member.toString()),
+    ])];
 
     for (const recipientId of recipients) {
       await createNotification({

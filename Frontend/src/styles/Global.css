@@ -64,6 +64,28 @@ body {
   background: var(--app-bg, #f5f7fb);
   color: var(--app-text, #0f172a);
   transition: background 0.25s ease, color 0.25s ease;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.9) transparent;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #818cf8, #6366f1);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6366f1, #4f46e5);
 }
 
 button,

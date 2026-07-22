@@ -7,6 +7,11 @@ const streamifier = require("streamifier");
 const createNotification = require("../utils/createNotification");
 const createActivity = require("../utils/createActivity");
 
+const getWorkspaceParticipantIds = (workspace) => new Set([
+  workspace.owner.toString(),
+  ...workspace.members.map((member) => member.toString()),
+]);
+
 const createTask = async (req, res) => {
   try {
     const { title, description, projectId, assignedTo, priority, dueDate } =
@@ -75,18 +80,16 @@ const createTask = async (req, res) => {
   }
 );
 
-    const notificationRecipients = [...new Set(
-      [workspace.owner, ...workspace.members, assignedTo]
-        .filter(Boolean)
-        .map((member) => member.toString()),
-    )];
+    const assignedId = assignedTo ? assignedTo.toString() : null;
+    const workspaceRecipientIds = getWorkspaceParticipantIds(workspace);
+    const notificationRecipients = [...workspaceRecipientIds];
 
     for (const recipientId of notificationRecipients) {
       await createNotification({
         recipient: recipientId,
         sender: req.user._id,
-        message: recipientId.toString() === assignedTo.toString()
-          ? `You have been assigned task "${task.title}"`
+        message: recipientId === assignedId
+          ? "You've been assigned a task"
           : `Task "${task.title}" was created in the workspace`,
         type: "TASK_ASSIGNED",
         io,
@@ -227,6 +230,9 @@ const updateTask = async (req, res) => {
       });
     }
 
+    const previousAssignedTo = task.assignedTo?.toString();
+    let assignedUserChanged = false;
+
     if (assignedTo) {
       const user = await User.findById(assignedTo);
 
@@ -248,6 +254,7 @@ const updateTask = async (req, res) => {
         });
       }
 
+      assignedUserChanged = previousAssignedTo !== assignedTo.toString();
       task.assignedTo = assignedTo;
     }
 
@@ -280,11 +287,20 @@ const updateTask = async (req, res) => {
   }
 );
 
-    const notificationRecipients = [...new Set(
-      [workspace.owner, ...workspace.members, task.assignedTo]
-        .filter(Boolean)
-        .map((member) => member.toString()),
-    )];
+    const workspaceRecipientIds = getWorkspaceParticipantIds(workspace);
+    const notificationRecipients = [...workspaceRecipientIds];
+
+    if (assignedUserChanged && assignedTo) {
+      await createNotification({
+        recipient: assignedTo,
+        sender: req.user._id,
+        message: "You've been assigned a task",
+        type: "TASK_ASSIGNED",
+        io,
+        relatedWorkspace: workspace._id,
+        relatedTask: task._id,
+      });
+    }
 
     for (const recipientId of notificationRecipients) {
       await createNotification({
@@ -361,11 +377,8 @@ const updateTaskStatus = async (req, res) => {
   }
 );
 
-    const notificationRecipients = [...new Set(
-      [workspace.owner, ...workspace.members, task.assignedTo]
-        .filter(Boolean)
-        .map((member) => member.toString()),
-    )];
+    const workspaceRecipientIds = getWorkspaceParticipantIds(workspace);
+    const notificationRecipients = [...workspaceRecipientIds];
 
     for (const recipientId of notificationRecipients) {
       await createNotification({
@@ -489,11 +502,8 @@ const addComment = async (req,res) => {
 
     io.to(task.workspace.toString()).emit("commentAdded", commentPayload);
 
-    const notificationRecipients = [...new Set(
-      [workspace.owner, ...workspace.members, task.assignedTo]
-        .filter(Boolean)
-        .map((member) => member.toString()),
-    )];
+const workspaceRecipientIds = getWorkspaceParticipantIds(workspace);
+      const notificationRecipients = [...workspaceRecipientIds];
 
     for (const recipientId of notificationRecipients) {
       await createNotification({
@@ -666,11 +676,8 @@ const uploadAttachment = async (req, res) => {
     );
 
     try {
-      const notificationRecipients = [...new Set(
-        [workspace.owner, ...workspace.members, task.assignedTo]
-          .filter(Boolean)
-          .map((member) => member.toString()),
-      )];
+      const workspaceRecipientIds = getWorkspaceParticipantIds(workspace);
+      const notificationRecipients = [...workspaceRecipientIds];
 
       for (const recipientId of notificationRecipients) {
         await createNotification({

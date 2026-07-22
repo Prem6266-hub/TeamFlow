@@ -19,6 +19,7 @@ import {
   appendComment,
   setComments,
 } from "../features/task/taskSlice";
+import { fetchWorkspaceMembers } from "../features/workspace/workspaceSlice";
 import { getSocket, joinWorkspaceRoom } from "../socket/socket";
 import Footer from "../components/footer";
 
@@ -34,6 +35,7 @@ function Task() {
     loading,
   } = useSelector((state) => state.task);
   const { user } = useSelector((state) => state.auth);
+  const { members } = useSelector((state) => state.workspace);
 
   const [comment, setComment] = useState("");
 
@@ -48,6 +50,7 @@ function Task() {
       description: "",
       priority: "medium",
       dueDate: "",
+      assignedTo: "",
     });
 
   const isPdfAttachment = (fileName = "") =>
@@ -160,6 +163,7 @@ function Task() {
           currentTask.priority ||
           "medium",
         dueDate: formatDateForInput(currentTask.dueDate),
+        assignedTo: getIdString(currentTask.assignedTo) || "",
       });
     }
   }, [currentTask]);
@@ -413,31 +417,70 @@ function Task() {
             }
           />
 
-          <select
-            value={
-              editData.priority
-            }
-            onChange={(e) =>
-              setEditData({
-                ...editData,
-                priority:
-                  e.target
-                    .value,
-              })
-            }
-          >
-            <option value="low">
-              Low
-            </option>
+          <div className="form-row">
+            <div className="input-group" style={{ flex: 1 }}>
+              <label>Assign to</label>
+              <select
+                className="select"
+                name="assignedTo"
+                value={editData.assignedTo || ""}
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    assignedTo: e.target.value,
+                  })
+                }
+              >
+                {members && members.length > 0 ? (
+                  members.map((member) => (
+                    <option
+                      key={member._id}
+                      value={member._id}
+                    >
+                      {member.name || member.email || "Member"}
+                    </option>
+                  ))
+                ) : (
+                  <option
+                    value={
+                      getIdString(currentTask?.assignedTo) || ""
+                    }
+                  >
+                    {currentTask?.assignedTo?.name || currentTask?.assignedTo || "Unassigned"}
+                  </option>
+                )}
+              </select>
+            </div>
 
-            <option value="medium">
-              Medium
-            </option>
+            <div className="input-group" style={{ flex: 1 }}>
+              <label>Priority</label>
+              <select
+                value={
+                  editData.priority
+                }
+                onChange={(e) =>
+                  setEditData({
+                    ...editData,
+                    priority:
+                      e.target
+                        .value,
+                  })
+                }
+              >
+                <option value="low">
+                  Low
+                </option>
 
-            <option value="high">
-              High
-            </option>
-          </select>
+                <option value="medium">
+                  Medium
+                </option>
+
+                <option value="high">
+                  High
+                </option>
+              </select>
+            </div>
+          </div>
 
           <input
             type="date"

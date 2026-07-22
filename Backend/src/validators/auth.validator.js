@@ -7,7 +7,9 @@ const registerSchema = Joi.object({
     .email()
     .required(),
 
-    password: Joi.string().min(6).required()
+    password: Joi.string().min(6).required(),
+
+    skill: Joi.string().valid("Frontend", "Backend", "Fullstack", "Other").required(),
 });
 
 

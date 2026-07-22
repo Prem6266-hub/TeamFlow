@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../../services/api';
+import { login, register, logout } from '../auth/authSlice';
 
 const readStoredNotifications = () => {
   if (typeof window === 'undefined') return [];
@@ -102,6 +103,27 @@ const notificationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      .addCase(login.fulfilled, (state) => {
+        state.items = [];
+        state.error = null;
+        state.loading = false;
+        state.modalOpen = false;
+        persistNotifications(state.items);
+      })
+      .addCase(register.fulfilled, (state) => {
+        state.items = [];
+        state.error = null;
+        state.loading = false;
+        state.modalOpen = false;
+        persistNotifications(state.items);
+      })
+      .addCase(logout, (state) => {
+        state.items = [];
+        state.error = null;
+        state.loading = false;
+        state.modalOpen = false;
+        persistNotifications(state.items);
+      })
       .addCase(fetchNotifications.pending, (state) => {
         state.loading = true;
         state.error = null;

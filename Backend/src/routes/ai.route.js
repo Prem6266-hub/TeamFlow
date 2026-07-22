@@ -4,6 +4,6 @@ const {generateTasks} = require("../controllers/ai.controller");
 
 const aiRouter = express.Router();
 
-aiRouter.post("/generate-task", protect, generateTasks);
+aiRouter.post("/generate-tasks", protect, generateTasks);
 
 module.exports = aiRouter;

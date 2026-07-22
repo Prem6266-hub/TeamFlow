@@ -12,6 +12,7 @@ function Register() {
     name: '',
     email: '',
     password: '',
+    skill: 'Frontend',
   });
 
   const handleChange = (e) => {
@@ -48,6 +49,16 @@ function Register() {
           <div className="input-group">
             <label htmlFor="password">Password</label>
             <input id="password" className="input" type="password" name="password" placeholder="Create a password" value={formData.password} onChange={handleChange} />
+          </div>
+
+          <div className="input-group">
+            <label htmlFor="skill">Skill</label>
+            <select id="skill" className="select" name="skill" value={formData.skill} onChange={handleChange}>
+              <option value="Frontend">Frontend</option>
+              <option value="Backend">Backend</option>
+              <option value="Fullstack">Fullstack</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           {error && <div className="form-error">{error}</div>}

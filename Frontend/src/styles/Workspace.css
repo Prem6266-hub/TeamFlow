@@ -186,28 +186,88 @@
 }
 
 .activity-list {
-  max-height: 320px;
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.taskboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-top: 16px;
+    align-items: start;
+  }
+
+  .taskboard-column {
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+    max-height: 560px;
+    padding: 14px;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .taskboard-column__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+    padding-right: 6px;
+    flex: 1 1 0;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(99, 102, 241, 0.9) transparent;
+  }
+
+  .taskboard-column__list .taskboard-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .taskboard-card {
+    cursor: pointer;
+    padding: 10px;
+    margin-bottom: 6px;
+  }
+
+  .taskboard-card .project-title {
+    font-size: 1rem;
+  }
+
+  .taskboard-card .project-description {
+    font-size: 0.92rem;
+    margin: 6px 0;
+  }
+
+  .taskboard-column__list::-webkit-scrollbar,
+  .activity-list::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .taskboard-column__list::-webkit-scrollbar-track,
+  .activity-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .taskboard-column__list::-webkit-scrollbar-thumb,
+  .activity-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #818cf8, #6366f1);
+    border-radius: 999px;
+  }
+
+  .taskboard-column__list::-webkit-scrollbar-thumb:hover,
+  .activity-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #6366f1, #4f46e5);
+  }
+
+.activity-list {
+  max-height: 340px;
   overflow-y: auto;
   padding-right: 6px;
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
-.activity-list::-webkit-scrollbar {
-  width: 8px;
-}
-
-.activity-list::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.activity-list::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #818cf8, #6366f1);
-  border-radius: 999px;
-}
-
-.activity-list::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #6366f1, #4f46e5);
+  scrollbar-color: rgba(99, 102, 241, 0.9) transparent;
 }
 
 .member-card,

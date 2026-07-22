@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        skill: {
+            type: String,
+            enum: ["Frontend", "Backend", "Fullstack", "Other"],
+            required: true,
+        },
         role: {
             type: String,
             enum: ["owner", "member"],
