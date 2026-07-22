@@ -3,6 +3,8 @@ import { useEffect } from 'react';
 import { fetchWorkspaces } from '../features/workspace/workspaceSlice';
 import WorkspaceCard from '../components/WorkspaceCard';
 import CreateWorkspaceModal from '../components/CreateWorkspaceModal';
+import Navbar from '../components/Navbar';
+import Footer from '../components/footer';
 
 function Dashboard() {
   const dispatch = useDispatch();
@@ -13,6 +15,7 @@ function Dashboard() {
   }, [dispatch]);
 
   return (
+    <>
     <div className="workspace-page">
       <section className="workspace-hero">
         <div className="workspace-hero__content">
@@ -44,6 +47,13 @@ function Dashboard() {
         )}
       </section>
     </div>
+
+
+  <Footer/>
+
+    </>
+
+    
   );
 }
 

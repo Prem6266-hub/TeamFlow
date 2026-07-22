@@ -20,7 +20,7 @@ function CreateWorkspaceModal() {
     <form className="auth-form" onSubmit={handleSubmit} style={{ minWidth: '280px' }}>
       <div className="input-group">
         <label>Workspace name</label>
-        <input className="input" placeholder="Workspace Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input className="input" placeholder="e.g. company name" value={name} onChange={(e) => setName(e.target.value)} />
       </div>
 
       <div className="input-group">

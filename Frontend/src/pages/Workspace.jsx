@@ -15,6 +15,7 @@ import {
 import { fetchProjects, createNewProject } from "../features/project/projectSlice";
 import { addNotification } from "../features/notification/notificationSlice";
 import { joinWorkspaceRoom } from "../socket/socket";
+import Footer from "../components/footer";
 
 function Workspace() {
   const { workSpaceId } = useParams();
@@ -68,7 +69,7 @@ function Workspace() {
 
     if (inviteWorkspaceMember.fulfilled.match(result)) {
       setInviteEmail("");
-      setInviteFeedback({ type: "success", message: "Invitation sent successfully." });
+      setInviteFeedback({ type: "success", message: "User added successfully." });
       dispatch(fetchWorkspaceMembers(workSpaceId));
     } else {
       setInviteFeedback({
@@ -136,6 +137,7 @@ function Workspace() {
   };
 
   return (
+    <>
     <div className="workspace-page">
       <section className="workspace-hero">
         <div className="workspace-hero__content">
@@ -364,6 +366,10 @@ function Workspace() {
         )}
       </section>
     </div>
+
+    <Footer/>
+    </>
+    
   );
 }
 

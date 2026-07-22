@@ -8,6 +8,7 @@ import { fetchTasks } from '../features/task/taskSlice';
 import { fetchWorkspaceMembers } from '../features/workspace/workspaceSlice';
 import '../styles/Workspace.css';
 import { joinWorkspaceRoom } from '../socket/socket';
+import Footer from '../components/footer';
 
 function Project() {
   const { projectId } = useParams();
@@ -66,6 +67,7 @@ function Project() {
   };
 
   return (
+    <>
     <div className="workspace-page">
       <section className="workspace-hero">
         <div className="workspace-hero__content">
@@ -141,6 +143,10 @@ function Project() {
         </section>
       </div>
     </div>
+
+    <Footer/>
+    </>
+    
   );
 }
 

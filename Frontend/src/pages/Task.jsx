@@ -1,162 +1,3 @@
-// import { useEffect } from "react";
-// import { useParams } from "react-router-dom";
-// import { useDispatch, useSelector } from "react-redux";
-
-// import { fetchTask, fetchTasks, fetchAttachments, fetchComments } from "../features/task/taskSlice";
-
-// function Task() {
-//   const { taskId } = useParams();
-
-//   const dispatch = useDispatch();
-
-//   const {
-//     currentTask,
-//     comments,
-//     attachments,
-//     loading,
-//   } = useSelector(
-//     (state) => state.task
-//   );
-
-//   useEffect(() => {
-//     dispatch(fetchTask(taskId));
-//     dispatch(fetchComments(taskId));
-//     dispatch(fetchAttachments(taskId));
-//   }, [taskId]);
-
-//   if (loading) {
-//     return <h2>Loading...</h2>;
-//   }
-
-//   return (
-//     <div>
-//       <h1>{currentTask?.title}</h1>
-
-//       <p>
-//         {currentTask?.description}
-//       </p>
-
-//       <hr />
-
-//       <h3>Status</h3>
-
-//       <p>
-//         {currentTask?.status}
-//       </p>
-
-//       <h3>Priority</h3>
-
-//       <p>
-//         {currentTask?.priority}
-//       </p>
-
-//       <h3>Assigned To</h3>
-
-//       <p>
-//         {currentTask?.assignedTo?.name}
-//       </p>
-
-//       <h3>Created By</h3>
-
-//       <p>
-//         {currentTask?.createdBy?.name}
-//       </p>
-
-//       <h3>Due Date</h3>
-
-//       <p>
-//         {currentTask?.dueDate
-//           ? new Date(
-//               currentTask.dueDate
-//             ).toLocaleDateString()
-//           : "No Due Date"}
-//       </p>
-
-//       <hr />
-
-//       <h2>Comments</h2>
-
-//       {comments?.map(
-//         (comment, index) => (
-//           <div key={index}>
-//             <strong>
-//               {
-//                 comment.user
-//                   ?.name
-//               }
-//             </strong>
-
-//             <p>
-//               {comment.text}
-//             </p>
-//           </div>
-//         )
-//       )}
-
-//       <hr />
-
-//       <h2>Attachments</h2>
-
-//       {attachments?.map(
-//         (
-//           attachment,
-//           index
-//         ) => (
-//           <div key={index}>
-//             <a
-//               href={
-//                 attachment.fileUrl
-//               }
-//               target="_blank"
-//               rel="noreferrer"
-//             >
-//               {
-//                 attachment.fileName
-//               }
-//             </a>
-//           </div>
-//         )
-//       )}
-//     </div>
-//   );
-// }
-
-// export default Task;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
@@ -179,6 +20,7 @@ import {
   setComments,
 } from "../features/task/taskSlice";
 import { getSocket, joinWorkspaceRoom } from "../socket/socket";
+import Footer from "../components/footer";
 
 function Task() {
   const { taskId } = useParams();
@@ -387,12 +229,6 @@ function Task() {
   const handleRemoveAttachment = async (
     attachmentId
   ) => {
-    // const confirmed =
-    //   window.confirm(
-    //     "Remove this attachment?"
-    //   );
-
-    // if (!confirmed) return;
 
     try {
       const resultAction = await dispatch(
@@ -444,6 +280,7 @@ function Task() {
   }
 
   return (
+    <>
     <div className="task-page"
     >
       <div className="task-topbar">
@@ -720,29 +557,6 @@ function Task() {
       ) : (
         <p className="attachment-note">Only the workspace owner can upload attachments.</p>
       )}
-
-      {/* {attachments?.map(
-        (
-          attachment,
-          index
-        ) => (
-          <div className="attachment-item"
-            key={index}
-          >
-            <a
-              href={
-                attachment.fileUrl
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              {
-                attachment.fileName
-              }
-            </a>
-          </div>
-        )
-      )} */}
        
        {attachments?.map((attachment, index) => (
   <div
@@ -824,6 +638,10 @@ function Task() {
 
       
     </div>
+
+    <Footer/>
+    </>
+    
   );
 }
 

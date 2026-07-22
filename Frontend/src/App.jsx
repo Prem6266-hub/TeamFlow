@@ -10,6 +10,8 @@ import PublicRoute from './routes/PublicRoute';
 import Workspace from './pages/Workspace';
 import Project from './pages/Project';
 import Task from './pages/Task';
+import About from './pages/About';
+import Privacy from './pages/Privacy';
 import DashboardLayout from './layouts/DashboardLayout';
 import { connectSocket, disconnectSocket } from './socket/socket';
 import { fetchProjects } from './features/project/projectSlice';
@@ -125,6 +127,8 @@ function AppShell() {
 
         <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="/about" element={<About />} />
+        <Route path="/privacy" element={<Privacy />} />
 
         <Route path="/dashboard" element={<ProtectedRoute>{layoutWrapper(<Dashboard />)}</ProtectedRoute>} />
         <Route path="/workspace/:workSpaceId" element={<ProtectedRoute>{layoutWrapper(<Workspace />)}</ProtectedRoute>} />

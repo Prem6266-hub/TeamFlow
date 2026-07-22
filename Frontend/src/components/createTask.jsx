@@ -148,7 +148,7 @@ function CreateTask({ projectId, members = [], onSuccess, canUploadAttachments =
           onChange={(e) => setAttachmentFile(e.target.files?.[0] || null)}
         />
         {canUploadAttachments ? (
-          <small style={{ color: 'var(--app-muted)' }}>Workspace owners can attach a file when creating the task.</small>
+          <small style={{ color: 'var(--app-muted)' }}>Workspace owners can attach a file.</small>
         ) : (
           <small style={{ color: 'var(--app-muted)' }}>Only the workspace owner can attach files.</small>
         )}

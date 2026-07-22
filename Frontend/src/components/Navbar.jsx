@@ -128,7 +128,7 @@ function Navbar({ theme, setTheme }) {
       <nav className={`navbar ${scrolled ? 'navbar--scrolled' : ''}`}>
         <div className={`navbar__scroll-glow ${scrollGlowVisible ? 'visible' : ''}`} />
         <div className="navbar__brand" onClick={() => { navigate('/dashboard'); setMobileOpen(false); }}>
-          <span className="navbar__brand-icon">⚡</span>
+          <span className="navbar__brand-icon">🤝</span>
           <span>TeamFlow</span>
         </div>
 
@@ -151,7 +151,7 @@ function Navbar({ theme, setTheme }) {
             aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             <span className="theme-toggle__icon">{theme === 'dark' ? '☀' : '☾'}</span>
-            <span className="theme-toggle__label">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+            {/* <span className="theme-toggle__label">{theme === 'dark' ? 'Light' : 'Dark'}</span> */}
           </button>
           <button className="btn btn-secondary" onClick={handleOpenNotifications}>
             Notifications {items.length ? `(${items.length})` : ''}
@@ -170,7 +170,8 @@ function Navbar({ theme, setTheme }) {
       <div className={`navbar__mobile-panel ${mobileOpen ? 'open' : ''}`}>
         <div className="navbar__mobile-head">
           <div className="navbar__brand" onClick={() => { navigate('/dashboard'); setMobileOpen(false); }}>
-            <span className="navbar__brand-icon">⚡</span>
+            {/* <span className="navbar__brand-icon">⚡</span> */}
+            
             <span>TeamFlow</span>
           </div>
           <button className="navbar__close" onClick={() => setMobileOpen(false)} aria-label="Close navigation">✕</button>

@@ -11,9 +11,11 @@ const projectRouter = require("./src/routes/project.routes");
 const taskRouter = require("./src/routes/task.route");
 const dashRouter = require("./src/routes/dashboard.route");
 const notificationRouter = require("./src/routes/notification.route");
+const newsletterRouter = require("./src/routes/newsletter.route");
 const http = require("http");
 const {Server} = require("socket.io");
 const {socketHandler} = require("./src/socket/socket");
+const aiRouter = require("./src/routes/ai.route");
 
 const app = express();
 
@@ -50,6 +52,8 @@ app.use("/api/projects", projectRouter);
 app.use("/api/tasks", taskRouter);
 app.use("/api/dashboard", dashRouter);
 app.use("/api/notifications", notificationRouter);
+app.use("/api/newsletter", newsletterRouter);
+app.use("/api/ai", aiRouter);
 
 
 
