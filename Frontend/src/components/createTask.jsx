@@ -158,7 +158,12 @@ function CreateTask({ projectId, members = [], onSuccess, canUploadAttachments =
         <div className={`form-feedback ${feedback.type === 'error' ? 'error' : 'success'}`}>{feedback.message}</div>
       ) : null}
 
-      <button className="btn btn-primary" type="submit" disabled={!projectId || !canManageTasks}>
+      <button
+        className="btn btn-primary"
+        type="submit"
+        disabled={!projectId || !canManageTasks}
+        style={{ width: 'min(100%, 240px)' }}
+      >
         {projectId ? 'Create task' : 'Select a project first'}
       </button>
 

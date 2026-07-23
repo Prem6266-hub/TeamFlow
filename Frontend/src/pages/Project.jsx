@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { editProject, fetchSingleProject } from '../features/project/projectSlice';
 import CreateTask from '../components/createTask';
-import { fetchTasks } from '../features/task/taskSlice';
+import { clearProjectTasks, fetchTasks } from '../features/task/taskSlice';
 import TaskBoard from '../components/TaskBoard';
 import { fetchSingleWorkspace, fetchWorkspaceMembers } from '../features/workspace/workspaceSlice';
 import '../styles/Workspace.css';
@@ -86,6 +86,16 @@ function Project() {
 
     await dispatch(fetchTasks(project._id));
   }
+
+  const handleDeleteAllTasks = async () => {
+    if (!project?._id) return;
+
+    const result = await dispatch(clearProjectTasks(project._id));
+
+    if (clearProjectTasks.fulfilled.match(result)) {
+      await dispatch(fetchTasks(project._id));
+    }
+  };
 
   return (
     <>
@@ -190,24 +200,43 @@ function Project() {
             <h2>Create task</h2>
           </div>
           <CreateTask projectId={projectId} members={members} canUploadAttachments={isWorkspaceOwner} canManageTasks={isWorkspaceOwner} />
-          <button
-            className="btn btn-primary"
-            onClick={handleGenerateTasks}
-            style={{
-              marginTop: 16,
-              width: 'min(100%, 320px)',
-              alignSelf: 'flex-start',
-            }}
-          >
-            Generate Tasks with AI
-          </button>
+          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: 'min(100%, 240px)' }}>
+              <div style={{ flex: 1, height: '1px', background: 'var(--app-border, #e2e8f0)' }} />
+              <span style={{ color: 'var(--app-muted)', fontSize: '0.85rem', fontWeight: 600 }}>or</span>
+              <div style={{ flex: 1, height: '1px', background: 'var(--app-border, #e2e8f0)' }} />
+            </div>
+            <button
+              className="btn btn-primary"
+              onClick={handleGenerateTasks}
+              style={{
+                width: 'min(100%, 240px)',
+                alignSelf: 'flex-start',
+              }}
+            >
+              Generate Tasks with AI
+            </button>
+          </div>
         </section>
       ) : null}
 
       {isWorkspaceOwner ? (
         <section className="workspace-card" style={{ marginTop: 20 }}>
-          <div className="workspace-card__header">
+          <div className="workspace-card__header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
             <h2>Task board</h2>
+            <button
+              className="btn btn-danger"
+              onClick={handleDeleteAllTasks}
+              style={{
+                padding: '8px 12px',
+                fontSize: '0.9rem',
+                whiteSpace: 'nowrap',
+                width: 'auto',
+                maxWidth: '100%',
+              }}
+            >
+              Delete all tasks
+            </button>
           </div>
           <TaskBoard tasks={tasks} />
         </section>

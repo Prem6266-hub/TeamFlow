@@ -3,7 +3,7 @@ import {
   createSlice,
 } from "@reduxjs/toolkit";
 
-import { createTask, getProjectTasks, getSingleTask, deleteTask, updateTask, updateTaskStatus, addComment, uploadAttachment, getAttachments, getTaskComments, deleteAttachment } from "../../services/taskApi";
+import { createTask, getProjectTasks, getSingleTask, deleteTask, deleteAllProjectTasks, updateTask, updateTaskStatus, addComment, uploadAttachment, getAttachments, getTaskComments, deleteAttachment } from "../../services/taskApi";
 import { deleteTaskComment } from "../../services/taskApi";
 
 const initialState = {
@@ -146,6 +146,18 @@ export const removeTask = createAsyncThunk(
       return thunkAPI.rejectWithValue(
         err.response?.data?.message
       );
+    }
+  }
+);
+
+export const clearProjectTasks = createAsyncThunk(
+  "task/clearProjectTasks",
+  async (projectId, thunkAPI) => {
+    try {
+      const response = await deleteAllProjectTasks(projectId);
+      return response;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
     }
   }
 );
@@ -482,6 +494,29 @@ state.currentTask = action.payload.task;
   removeTask.pending,
   (state) => {
     state.loading = true;
+  }
+)
+
+.addCase(
+  clearProjectTasks.pending,
+  (state) => {
+    state.loading = true;
+  }
+)
+
+.addCase(
+  clearProjectTasks.fulfilled,
+  (state) => {
+    state.loading = false;
+    state.tasks = [];
+  }
+)
+
+.addCase(
+  clearProjectTasks.rejected,
+  (state, action) => {
+    state.loading = false;
+    state.error = action.payload;
   }
 )
 

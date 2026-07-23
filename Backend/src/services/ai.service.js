@@ -58,4 +58,21 @@ return JSON.parse(cleaned);
     }
 }
 
-module.exports = {generateTasksWithAI};
+
+const askGemini = async(prompt) => {
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.6-flash",
+      contents: prompt,
+    });
+
+    return response.text;
+  } catch (err) {
+      console.log("Gemini Error: ", err);
+
+      throw new Error("Failed to get AI response");
+  }
+}
+
+
+module.exports = {generateTasksWithAI, askGemini};

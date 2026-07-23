@@ -54,6 +54,11 @@ export const deleteTask = async (
     return response.data;
 };
 
+export const deleteAllProjectTasks = async (projectId) => {
+    const response = await api.delete(`/api/tasks/project/${projectId}`);
+    return response.data;
+};
+
 export const addComment = async (
     taskId,
     comment

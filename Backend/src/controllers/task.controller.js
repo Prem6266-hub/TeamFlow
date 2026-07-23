@@ -454,6 +454,45 @@ const deleteTask = async (req, res) => {
   }
 };
 
+const deleteAllProjectTasks = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    const workspace = await workSpace.findById(project.workspace);
+    if (!workspace) {
+      return res.status(404).json({
+        message: "Workspace not found",
+      });
+    }
+
+    const isWorkspaceOwner = workspace.owner.toString() === req.user._id.toString();
+    if (!isWorkspaceOwner) {
+      return res.status(403).json({
+        message: "Only the workspace owner can delete all tasks",
+      });
+    }
+
+    const deletedTasks = await Task.deleteMany({ project: project._id });
+
+    res.status(200).json({
+      message: "All project tasks deleted successfully",
+      deletedCount: deletedTasks.deletedCount,
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({
+      message: "Failed to delete project tasks",
+    });
+  }
+};
+
 const addComment = async (req,res) => {
   try {
     const {taskId} = req.params;
@@ -799,4 +838,4 @@ const deleteAttachment = async (req, res) => {
   }
 };
 
-module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, addComment, getTasksComment, deleteComment, uploadAttachment, getAttachments, deleteAttachment };
+module.exports = { createTask, getProjectTasks, getSingleTask, updateTask, updateTaskStatus, deleteTask, deleteAllProjectTasks, addComment, getTasksComment, deleteComment, uploadAttachment, getAttachments, deleteAttachment };

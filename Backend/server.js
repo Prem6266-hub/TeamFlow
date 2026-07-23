@@ -15,7 +15,7 @@ const newsletterRouter = require("./src/routes/newsletter.route");
 const http = require("http");
 const {Server} = require("socket.io");
 const {socketHandler} = require("./src/socket/socket");
-const aiRouter = require("./src/routes/ai.route");
+const aiRouter = require("./src/ai/ai.route")
 
 const app = express();
 
