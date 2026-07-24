@@ -113,16 +113,17 @@ const chatWithAi = async (req, res) => {
       });
     }
 
-    const { workSpaceId, message } = req.body;
+    const { workSpaceId, workspaceId, message } = req.body;
+    const resolvedWorkspaceId = workSpaceId || workspaceId;
 
-    if (!workSpaceId || !message) {
+    if (!resolvedWorkspaceId || !message) {
       return res.status(400).json({
         message: "workspaceId and message are required",
       });
     }
 
     const workspace = await workSpace
-      .findById(workSpaceId)
+      .findById(resolvedWorkspaceId)
       .populate("owner", "name email")
       .populate("members", "name email role skill");
 
@@ -145,7 +146,7 @@ const chatWithAi = async (req, res) => {
     }
 
     const projects = await Project.find({
-      workspace: workSpaceId,
+      workspace: resolvedWorkspaceId,
     });
 
     if (!projects || projects.length === 0) {
@@ -155,13 +156,13 @@ const chatWithAi = async (req, res) => {
     }
 
     const tasks = await Task.find({
-      workspace: workSpaceId,
+      workspace: resolvedWorkspaceId,
     })
       .populate("assignedTo", "name role skill")
       .populate("createdBy", "name");
 
     const activities = await Activity.find({
-      workspace: workSpaceId,
+      workspace: resolvedWorkspaceId,
     })
       .sort({ createdAt: -1 })
       .limit(30)

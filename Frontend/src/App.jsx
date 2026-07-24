@@ -13,6 +13,7 @@ import Task from './pages/Task';
 import About from './pages/About';
 import Privacy from './pages/Privacy';
 import DashboardLayout from './layouts/DashboardLayout';
+import AIAssistant from './pages/AIAssistant';
 import { connectSocket, disconnectSocket } from './socket/socket';
 import { fetchProjects } from './features/project/projectSlice';
 import { fetchAttachments, fetchComments, fetchTask, fetchTasks } from './features/task/taskSlice';
@@ -134,6 +135,7 @@ function AppShell() {
         <Route path="/workspace/:workSpaceId" element={<ProtectedRoute>{layoutWrapper(<Workspace />)}</ProtectedRoute>} />
         <Route path="/projects/:projectId" element={<ProtectedRoute>{layoutWrapper(<Project />)}</ProtectedRoute>} />
         <Route path="/task/:taskId" element={<ProtectedRoute>{layoutWrapper(<Task />)}</ProtectedRoute>} />
+        <Route path="/workspace/:workspaceId/ai" element={<ProtectedRoute>{layoutWrapper(<AIAssistant />)}</ProtectedRoute>} />
       </Routes>
     </>
   );

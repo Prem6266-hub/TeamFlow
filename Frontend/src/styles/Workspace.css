@@ -185,6 +185,14 @@
   gap: 12px;
 }
 
+.project-list {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.9) transparent;
+}
+
 .activity-list {
   max-height: 340px;
   overflow-y: auto;
@@ -241,24 +249,28 @@
   }
 
   .taskboard-column__list::-webkit-scrollbar,
-  .activity-list::-webkit-scrollbar {
+  .activity-list::-webkit-scrollbar,
+  .project-list::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
 
   .taskboard-column__list::-webkit-scrollbar-track,
-  .activity-list::-webkit-scrollbar-track {
+  .activity-list::-webkit-scrollbar-track,
+  .project-list::-webkit-scrollbar-track {
     background: transparent;
   }
 
   .taskboard-column__list::-webkit-scrollbar-thumb,
-  .activity-list::-webkit-scrollbar-thumb {
+  .activity-list::-webkit-scrollbar-thumb,
+  .project-list::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, #818cf8, #6366f1);
     border-radius: 999px;
   }
 
   .taskboard-column__list::-webkit-scrollbar-thumb:hover,
-  .activity-list::-webkit-scrollbar-thumb:hover {
+  .activity-list::-webkit-scrollbar-thumb:hover,
+  .project-list::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, #6366f1, #4f46e5);
   }
 

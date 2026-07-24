@@ -155,8 +155,14 @@ function Workspace() {
         </div>
 
         <div className="workspace-actions">
-          <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+          <button className="btn btn-secondary" onClick={() => navigate('/dashboard')}>
             Back
+          </button>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate(`/workspace/${workSpaceId}/ai`)}
+          >
+            ✦ AI Assistant
           </button>
           <button
             className="btn btn-primary"

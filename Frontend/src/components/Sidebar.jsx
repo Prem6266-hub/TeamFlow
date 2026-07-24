@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { logout } from '../features/auth/authSlice';
 
 function Sidebar({ isOpen, onClose, theme, setTheme }) {
+
   const dispatch = useDispatch();
   const links = [
     { to: '/dashboard', label: 'Dashboard', icon: '◉' },
